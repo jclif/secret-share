@@ -3,14 +3,93 @@
 
 <% @users.each do |user| %>
 <li><%= user.username %>
-  <% if @friendable_users.include?(user)%>
-    <%= form_for @friendship do |f| %>
-      <%= f.hidden_field :stalker_id, value: current_user.id %>
-      <%= f.hidden_field :victim_id, value: user.id %>
-      <%= f.submit "Stalk them?!"  %>
-    <% end %>
-  <% end %>
- </li>
+  <%# if @friendable_users.include?(user)%>
+  <% buttonHolderClass = @friendable_users.include?(user) ? 'addButton' : 'removeButton'%>
+  <div id="buttonHolder-<%= user.id %>" class='<%= buttonHolderClass %>'>
+    <input type="button" class="addFriend" name="addFriend" value="Add as a Friend" id="add_friend" data-victim-id="<%= user.id %>">
+    <% found_friendship = Friendship.find_by_stalker_id_and_victim_id(current_user.id, user.id) %>
+    <% friendship_id_data = found_friendship ? found_friendship.id : ''  %>
+    <input data-friendship_id='<%= friendship_id_data %>' type="button" class="removeFriend" name="removeFriend" value="Remove Friend" id="remove_friend" data-victim-id="<%= user.id %>">
+  </div>
+</li>
+  <%# end %>
+
 
 <% end %>
 </ul>
+<script>
+$(function () {
+  var friendAddClickHandler = function(){
+    $('input.addFriend').on('click.friendButton', function(event){
+      event.preventDefault();
+      var $that = $(this);
+      console.log('click add');
+      $(this).attr("value", "Friending...");
+      $(this).off("click.friendButton");
+      var user_id = $(this).attr("data-victim-id");
+      var ajaxOptions = {
+        url: '<%= friendships_url %>',
+        type: "POST",
+        data: {'friendship': {
+          victim_id: user_id
+        }
+      },
+        success: function(friendshipData){
+          $('div#buttonHolder-'+user_id).toggleClass("addButton");
+          $('div#buttonHolder-'+user_id).toggleClass("removeButton");
+          $('div#buttonHolder-'+user_id+' input.removeFriend')
+          .attr("data-friendship_id", friendshipData.id );
+          $('div#buttonHolder-'+user_id+' input.addFriend').attr("value", "Add as a friend");
+          friendAddClickHandler();
+        },
+        failure: function(){
+          $that.attr("value", "Add as a friend");
+          friendAddClickHandler();
+        }
+      };
+      console.log(ajaxOptions);
+      $.ajax(ajaxOptions)
+    });
+  };
+
+  var friendRemoveClickHandler = function (){
+    $('input.removeFriend').on('click.friendButton', function(event){
+      event.preventDefault();
+      var $that = $(this);
+      $(this).attr("value", "Defriending...");
+      $(this).off("click.friendButton");
+      var user_id = $(this).attr("data-victim-id");
+      var friendship_id = $(this).attr("data-friendship_id");
+      var ajaxOptions = {
+        url: '<%= friendships_url %>/' + friendship_id,
+        type: "DELETE",
+        data: {'friendship': {
+          victim_id: user_id
+        }
+      },
+        success: function(){
+          $('div#buttonHolder-'+user_id).addClass("addButton");
+          $('div#buttonHolder-'+user_id).removeClass("removeButton");
+          $('div#buttonHolder-'+user_id+' input.removeFriend')
+          .attr("data-friendship_id", "");
+          $('div#buttonHolder-'+user_id+' input.removeFriend').attr("value", "Remove Friend");
+          friendRemoveClickHandler();
+        },
+        failure: function(){
+          $that.attr("value", "Remove friend");
+          friendRemoveClickHandler();
+        }
+      };
+      console.log(ajaxOptions);
+      $.ajax(ajaxOptions)
+    });
+  };
+
+
+
+  friendAddClickHandler();
+  friendRemoveClickHandler();
+
+
+});
+</script>

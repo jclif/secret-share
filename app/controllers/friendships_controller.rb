@@ -2,11 +2,23 @@ class FriendshipsController < ApplicationController
 
   def create
     @friendship = Friendship.new(params[:friendship])
+    @friendship.stalker_id = current_user.id
 
-    if @friendship.save
-      redirect_to user_url(@friendship.victim_id)
+    if @friendship.save!
+      render json: @friendship
     else
-      redirect_to users_url
+      head 404
+    end
+  end
+
+  def destroy
+    @friendship = Friendship.find_by_id(params[:id])
+
+    if @friendship
+      @friendship.delete
+      head :ok
+    else
+      head 404
     end
   end
 
