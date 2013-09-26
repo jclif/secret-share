@@ -18,6 +18,8 @@ class UsersController < ApplicationController
   end
 
   def show
+    @secret = Secret.new
+    @recipient_id = params[:id]
     if params.include?(:id)
       @user = User.find(params[:id])
     else

@@ -9,9 +9,9 @@ class SecretsController < ApplicationController
     @secret.author_id = current_user.id
 
     if @secret.save
-      redirect_to user_url(@secret.recipient_id)
+      render json: @secret
     else
-      render :new
+      render :json => { success: false }
     end
   end
 end

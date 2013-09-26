@@ -3,7 +3,6 @@
 
 <% @users.each do |user| %>
 <li><%= user.username %>
-  <%# if @friendable_users.include?(user)%>
   <% buttonHolderClass = @friendable_users.include?(user) ? 'addButton' : 'removeButton'%>
   <div id="buttonHolder-<%= user.id %>" class='<%= buttonHolderClass %>'>
     <input type="button" class="addFriend" name="addFriend" value="Add as a Friend" id="add_friend" data-victim-id="<%= user.id %>">
@@ -12,7 +11,6 @@
     <input data-friendship_id='<%= friendship_id_data %>' type="button" class="removeFriend" name="removeFriend" value="Remove Friend" id="remove_friend" data-victim-id="<%= user.id %>">
   </div>
 </li>
-  <%# end %>
 
 
 <% end %>
@@ -84,8 +82,6 @@ $(function () {
       $.ajax(ajaxOptions)
     });
   };
-
-
 
   friendAddClickHandler();
   friendRemoveClickHandler();
